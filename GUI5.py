@@ -1003,7 +1003,6 @@ class BrainwavesBackend(QObject):
         self.logMessage.emit("Neurosity connector initialized")
 
     def emitNeurosityStatus(self, state):
-        print("emit:", state)
         if state == "online":
             self.neurosityStatusChanged.emit("Online")
         else:
@@ -1012,15 +1011,11 @@ class BrainwavesBackend(QObject):
     def get_neurosity_brainwave_data(self):
         """Capture and preprocess EEG data from the Neurosity headset."""
         if not self.neurosity_connected:
-            print("et_neurosity_brainwave_data bug before init_neurosity_processor")
             self.init_neurosity_processor()
-        print("et_neurosity_brainwave_data bug after init_neurosity_processor")
         if self.neurosity_processor is None:
             raise RuntimeError("Neurosity processor is not configured")
-        print("et_neurosity_brainwave_data bug before state")
         state = self.neurosity_processor.get_device_state_once()
         self.emitNeurosityStatus(state)
-        print(state)
         if state != "online":
             self.logMessage.emit(
                 f"Warning: Neurosity device is {state}."
@@ -1032,7 +1027,7 @@ class BrainwavesBackend(QObject):
         self.logMessage.emit("Capturing EEG from Neurosity headset...")
         self.brainwave_data = self.neurosity_processor.get_tensor()
         self.logMessage.emit("Neurosity EEG data captured")
-        print(self.brainwave_data)
+        # print(self.brainwave_data)
         return self.brainwave_data
 
 
