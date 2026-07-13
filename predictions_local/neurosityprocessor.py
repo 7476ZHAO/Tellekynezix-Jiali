@@ -51,8 +51,6 @@ class NeurosityDataProcessor:
         self._client.status(self._status_callback)
 
     def _status_callback(self, status):
-        print("callback:", status)
-        # self.device_state = status.get("state", "unknown")
         self.device_state = self.get_device_state_once()
         if self.status_callback:
             self.status_callback(self.device_state)
@@ -75,12 +73,8 @@ class NeurosityDataProcessor:
 
         unsubscribe = self._client.brainwaves_raw(self._brainwaves_callback)
         start = time.time()
-        print("cached:", self.device_state)
-        print("once:", self._client.status_once()["state"])
         while len(self._buffer) < buffer_size and time.time() - start < timeout:
             #check the state of device, if offline, stop getting data
-            
-
             if self._client.status_once()["state"] != "online":
                 unsubscribe()
                 raise RuntimeError("Neurosity device went offline during acquisition.")
@@ -100,33 +94,3 @@ class NeurosityDataProcessor:
 
         return torch.tensor(data, dtype=torch.float32)
 
-
-
-# if __name__ == "__main__":
-#     processor = NeurosityDataProcessor()
-
-#     # Create the client and log in
-#     processor._create_client()
-
-#     # Test device status
-#     print("Checking device status...")
-#     time.sleep(2)
-#     print("Device online:", processor.get_device_state_once())
-#     print('test')
-#     print(processor._client.get_from_path('status'))
-#     status = processor._client.status_once()
-    
-#     print(status)
-#     print(processor.get_tensor())
-#     print(processor._client.get_info())
-#     status = processor._client.status_once()
-#     print(status["lastHeartbeat"])
-#     status = processor._client.status_once()
-#     print(status["lastHeartbeat"])
-
-
-    # Uncomment to test EEG acquisition
-    # print("Getting EEG tensor...")
-    # tensor = processor.get_tensor()
-    # print(tensor.shape)
-    # print(tensor)
