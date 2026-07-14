@@ -93,4 +93,3 @@ class NeurosityDataProcessor:
             data = data.reshape(buffer_size, 1)
 
         return torch.tensor(data, dtype=torch.float32)
-
