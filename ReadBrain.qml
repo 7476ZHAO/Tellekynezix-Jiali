@@ -289,7 +289,6 @@ Rectangle {
                     consoleLog.append(message + " at " + timestamp)
                 }
                 function onNeurosityStatusChanged(status) {
-                    console.log(status)
                     neurosityStatus = status
                 }
             }
