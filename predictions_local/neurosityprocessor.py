@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from neurosity import NeurositySDK
 
 class NeurosityDataProcessor:
-    def __init__(self, email=None, password=None, device_id=None, env_path=None):
+    def __init__(self, email=None, password=None, device_id=None, env_path=None, status_callback=None):
         self.env_path = Path(env_path) if env_path else Path(__file__).resolve().parent.parent / ".env.txt"
         self.email = email
         self.password = password
@@ -16,6 +16,8 @@ class NeurosityDataProcessor:
         self._client = None
         self._buffer = []
         self._buffer_size = 512
+        self.device_state = "unknown"
+        self.status_callback = status_callback
 
         if self.email is None or self.password is None or self.device_id is None:
             self._load_env()
@@ -46,6 +48,17 @@ class NeurosityDataProcessor:
             "email": self.email,
             "password": self.password,
         })
+        self._client.status(self._status_callback)
+
+    def _status_callback(self, status):
+        self.device_state = self.get_device_state_once()
+        if self.status_callback:
+            self.status_callback(self.device_state)
+    
+    def get_device_state_once(self):
+        self._create_client()
+        return self._client.status_once().get("state", "unknown")
+    
 
     def _brainwaves_callback(self, data):
         if isinstance(data, dict) and "data" in data:
@@ -61,8 +74,14 @@ class NeurosityDataProcessor:
         unsubscribe = self._client.brainwaves_raw(self._brainwaves_callback)
         start = time.time()
         while len(self._buffer) < buffer_size and time.time() - start < timeout:
+            #check the state of device, if offline, stop getting data
+            if self._client.status_once()["state"] != "online":
+                unsubscribe()
+                raise RuntimeError("Neurosity device went offline during acquisition.")
+
             time.sleep(0.1)
 
+        
         if unsubscribe:
             unsubscribe()
 
