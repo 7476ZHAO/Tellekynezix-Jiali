@@ -1044,6 +1044,10 @@ class BrainwavesBackend(QObject):
         self.logMessage.emit("Neurosity EEG data captured")
         # print(self.brainwave_data)
         return self.brainwave_data
+    
+    @Slot(result=bool)
+    def isLoggedIn(self):
+        return self.neurosity_processor.is_logged_in()
 
 
 if __name__ == "__main__":
