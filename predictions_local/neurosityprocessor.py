@@ -62,6 +62,9 @@ class NeurosityDataProcessor:
         self.device_id = None
         self.device_map = {}
         self._client = None
+    
+    def is_logged_in(self):
+        return self.user is not None
 
     def get_devices(self):  
         devices_dict = self.db.child(f"users/{self.uid}/devices").get(self.token).val()
