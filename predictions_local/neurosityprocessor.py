@@ -101,8 +101,7 @@ class NeurosityDataProcessor:
 
         self.device_id = self.device_map[device_name]
 
-        # self._create_client()
-        print(self.get_device_state_once)
+        # print(self.get_device_state_once())
 
         return self.get_device_state_once()
 
