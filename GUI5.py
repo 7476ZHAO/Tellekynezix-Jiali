@@ -69,6 +69,10 @@ class BrainwavesBackend(QObject):
     naoEnded = Signal()
     enqueueMoveRequested = Signal(str)
     neurosityStatusChanged = Signal(str)
+    loginSucceeded = Signal("QVariantList")
+    loginFailed = Signal(str)
+    deviceConnected = Signal()
+    deviceOffline = Signal(str)
 
     @Slot()
     def startNaoManual(self):
@@ -999,22 +1003,26 @@ class BrainwavesBackend(QObject):
         if self.neurosity_processor is not None and self.neurosity_connected:
             return
 
-        email = os.getenv("NEUROSITY_EMAIL")
-        password = os.getenv("NEUROSITY_PASSWORD")
-        device_id = os.getenv("NEUROSITY_DEVICE_ID")
+        # lines below are only used when the email, password, device id is read from file .env
+        # email = os.getenv("NEUROSITY_EMAIL")
+        # password = os.getenv("NEUROSITY_PASSWORD")
+        # device_id = os.getenv("NEUROSITY_DEVICE_ID")
 
-        missing = [k for k, v in (
-            ("NEUROSITY_EMAIL", email),
-            ("NEUROSITY_PASSWORD", password),
-            ("NEUROSITY_DEVICE_ID", device_id),
-        ) if not v]
-        if missing:
-            raise RuntimeError(
-                "Missing Neurosity credentials in .env.txt: " + ", ".join(missing)
-            )
+        # missing = [k for k, v in (
+        #     ("NEUROSITY_EMAIL", email),
+        #     ("NEUROSITY_PASSWORD", password),
+        #     ("NEUROSITY_DEVICE_ID", device_id),
+        # ) if not v]
+        # if missing:
+        #     raise RuntimeError(
+        #         "Missing Neurosity credentials in .env.txt: " + ", ".join(missing)
+        #     )
 
-        self.neurosity_processor = NeurosityDataProcessor(email, password, device_id, status_callback=self.emitNeurosityStatus)
-        self.neurosity_connected = True
+        # self.neurosity_processor = NeurosityDataProcessor(email, password, device_id, status_callback=self.emitNeurosityStatus)
+        # self.neurosity_connected = True
+        self.neurosity_processor = NeurosityDataProcessor(
+            status_callback=self.emitNeurosityStatus
+        )
         self.logMessage.emit("Neurosity connector initialized")
 
     def emitNeurosityStatus(self, state):
@@ -1046,8 +1054,36 @@ class BrainwavesBackend(QObject):
         return self.brainwave_data
     
     @Slot(result=bool)
-    def isLoggedIn(self):
+    def isNeurosityLoggedIn(self):
+        if self.neurosity_processor is None:
+            return False
         return self.neurosity_processor.is_logged_in()
+    
+    @Slot(str, str)
+    def neurosityLogin(self, email, password):
+        print(email)
+        print(password)
+        self.init_neurosity_processor()
+        ok = self.neurosity_processor.login(email, password)
+
+        if ok:
+            devices = self.neurosity_processor.get_devices()
+            self.loginSucceeded.emit(devices)
+        else:
+            self.loginFailed.emit("Invalid email or password.")
+    
+    @Slot(str)
+    def selectNeurosityDevice(self, device):
+
+        state = self.neurosity_processor.select_device(device)
+        print("backend" + state)
+
+        if state == "online":
+            self.deviceConnected.emit()
+        else:
+            self.deviceOffline.emit(
+                "Device is offline. Please connect it in the Neurosity app."
+            )
 
 
 if __name__ == "__main__":
