@@ -980,7 +980,7 @@ class BrainwavesBackend(QObject):
             self.current_data_mode = "live"
             # print ("setBCISource bug")
             try:
-                self.init_neurosity_processor()
+                self.ensure_neurosity_processor()
                 state = self.neurosity_processor.get_device_state_once()
                 self.emitNeurosityStatus(state)
             except Exception as e:
@@ -998,7 +998,7 @@ class BrainwavesBackend(QObject):
         else:
             self.logMessage.emit("Unknown BCI source selected")
 
-    def init_neurosity_processor(self):
+    def ensure_neurosity_processor(self):
         """Initialize the Neurosity processor using environment variables."""
         if self.neurosity_processor is not None and self.neurosity_connected:
             return
@@ -1019,10 +1019,11 @@ class BrainwavesBackend(QObject):
         #     )
 
         # self.neurosity_processor = NeurosityDataProcessor(email, password, device_id, status_callback=self.emitNeurosityStatus)
-        # self.neurosity_connected = True
+        
         self.neurosity_processor = NeurosityDataProcessor(
             status_callback=self.emitNeurosityStatus
         )
+        self.neurosity_connected = True
         self.logMessage.emit("Neurosity connector initialized")
 
     def emitNeurosityStatus(self, state):
@@ -1034,7 +1035,7 @@ class BrainwavesBackend(QObject):
     def get_neurosity_brainwave_data(self):
         """Capture and preprocess EEG data from the Neurosity headset."""
         if not self.neurosity_connected:
-            self.init_neurosity_processor()
+            self.ensure_neurosity_processor()
         if self.neurosity_processor is None:
             raise RuntimeError("Neurosity processor is not configured")
         state = self.neurosity_processor.get_device_state_once()
@@ -1063,7 +1064,7 @@ class BrainwavesBackend(QObject):
     def neurosityLogin(self, email, password):
         print(email)
         print(password)
-        self.init_neurosity_processor()
+        self.ensure_neurosity_processor()
         ok = self.neurosity_processor.login(email, password)
 
         if ok:
