@@ -8,10 +8,12 @@ import numpy as np
 import torch
 from dotenv import load_dotenv
 from neurosity import NeurositySDK
+import traceback
 
 class NeurosityDataProcessor:
     def __init__(self, status_callback=None):
-        self.env_path = Path(env_path) if env_path else Path(__file__).resolve().parent.parent / ".env.txt"
+        # this line is only used when the email, password, device id is read from file .env
+        # self.env_path = Path(env_path) if env_path else Path(__file__).resolve().parent.parent / ".env.txt"
         self.email = None
         self.password = None
         self.device_id = None
@@ -47,13 +49,28 @@ class NeurosityDataProcessor:
     #     if missing:
     #         raise RuntimeError("Missing required Neurosity credentials: " + ", ".join(missing))
     def login(self, email, password):
+        # print("email =", email)
+        # print("password =", password)
+        # print(dir(self.auth))
 
-        self.email = email
-        self.password = password
+        try:
+            self.email = email
+            self.password = password
 
-        self.user = self.auth.sign_in(email, password)
-        self.uid = self.user["localId"]
-        self.token = self.user["idToken"]
+            self.user = self.auth.sign_in_with_email_and_password(email, password)
+            # print (self.user)
+            self.uid = self.user["localId"]
+            self.token = self.user["idToken"]
+
+            return True
+
+        except Exception as e:
+            print("========== LOGIN ERROR ==========")
+            print(type(e))
+            print(e)
+            traceback.print_exc()
+            print("=================================")
+            return False
 
     def logout(self):
         self.user = None
@@ -84,7 +101,8 @@ class NeurosityDataProcessor:
 
         self.device_id = self.device_map[device_name]
 
-        self._create_client()
+        # self._create_client()
+        print(self.get_device_state_once)
 
         return self.get_device_state_once()
 
