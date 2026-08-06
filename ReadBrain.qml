@@ -1,5 +1,5 @@
-import QtQuick.Dialogs
-import Qt.labs.platform
+// import QtQuick.Dialogs
+// import Qt.labs.platform
 import QtQuick 6.5
 import QtQuick.Controls 6.4
 import QtQuick.Layouts 1.15
@@ -620,68 +620,69 @@ Rectangle {
                         
                     }
 
-            //Headset select row
-            Row{
-                width: parent.width
-                height: (parent.height - parent.spacing * 2) / 3
-                spacing: parent.width * 0.02
+                    //Headset select row
+                    Row{
+                        width: parent.width
+                        height: (parent.height - parent.spacing * 2) / 3
+                        spacing: parent.width * 0.02
 
-                Rectangle {
-                    width: (parent.width - parent.spacing ) / 2
-                    height: parent.height
-                    color: "#2d7a4a"
-                    radius: 5
-                    border.color: selectedHeadset === "OpenBCI" ? "yellow" : "#4a9d6f"
-                    border.width: selectedHeadset === "OpenBCI" ? 3 : 1
+                        Rectangle {
+                            width: (parent.width - parent.spacing ) / 2
+                            height: parent.height
+                            color: "#2d7a4a"
+                            radius: 5
+                            border.color: selectedHeadset === "OpenBCI" ? "yellow" : "#4a9d6f"
+                            border.width: selectedHeadset === "OpenBCI" ? 3 : 1
 
-                    Text {
-                        text: "OpenBCI"
-                        font.pixelSize: parent.height * 0.3
-                        font.bold: true
-                        color: selectedHeadset === "OpenBCI" ? "yellow" : "white"
-                        anchors.centerIn: parent
-                    }
+                            Text {
+                                text: "OpenBCI"
+                                font.pixelSize: parent.height * 0.3
+                                font.bold: true
+                                color: selectedHeadset === "OpenBCI" ? "yellow" : "white"
+                                anchors.centerIn: parent
+                            }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            selectedHeadset = "OpenBCI"
-                            backend.setBCISource("openbci")
-                            
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    selectedHeadset = "OpenBCI"
+                                    backend.setBCISource("openbci")
+                                    
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            width: (parent.width - parent.spacing ) / 2 
+                            height: parent.height
+                            color: "#2d7a4a"
+                            radius: 5
+                            border.color: selectedHeadset === "Neurosity" ? "yellow" : "#4a9d6f"
+                            border.width: selectedHeadset === "Neurosity" ? 3 : 1
+
+                            Text {
+                                text: "Neurosity(" + neurosityStatus + ")"
+                                font.pixelSize: parent.height * 0.3
+                                font.bold: true
+                                color: selectedHeadset === "Neurosity" ? "yellow" : "white"
+                                anchors.centerIn: parent
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                if (backend.isNeurosityLoggedIn()) {
+                                    deviceDialog.open()
+                                } else {
+                                    loginDialog.open()
+                                }
+                                // selectedHeadset = "Neurosity"
+                                // backend.setBCISource("neurosity")
+                                
+                                }
+                            }
                         }
                     }
-                }
-
-                Rectangle {
-                    width: (parent.width - parent.spacing ) / 2 
-                    height: parent.height
-                    color: "#2d7a4a"
-                    radius: 5
-                    border.color: selectedHeadset === "Neurosity" ? "yellow" : "#4a9d6f"
-                    border.width: selectedHeadset === "Neurosity" ? 3 : 1
-
-                    Text {
-                        text: "Neurosity(" + neurosityStatus + ")"
-                        font.pixelSize: parent.height * 0.3
-                        font.bold: true
-                        color: selectedHeadset === "Neurosity" ? "yellow" : "white"
-                        anchors.centerIn: parent
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                        selectedHeadset = "Neurosity"
-                        backend.setBCISource("neurosity")
-                        
-                        }
-                    }
-                }
-
-                    }
-
-
-
                 }
             }          
         }
@@ -760,6 +761,118 @@ Rectangle {
             onClicked: backend.setDataMode("synthetic")
         }
          
+    }
+
+    Dialog {
+        id: loginDialog
+
+        title: "Neurosity Login"
+        modal: true
+        width: 350
+
+        Column {
+            anchors.fill: parent
+            spacing: 10
+            padding: 15
+
+            TextField {
+                id: emailField
+                placeholderText: "Email"
+            }
+
+            TextField {
+                id: passwordField
+                placeholderText: "Password"
+                echoMode: TextInput.Password
+            }
+
+            Label {
+                id: errorLabel
+                color: "red"
+                text: ""
+                wrapMode: Text.WordWrap
+            }
+
+            Button {
+                text: "Login"
+
+                onClicked: {
+                    backend.neurosityLogin(
+                        emailField.text,
+                        passwordField.text
+                    )
+                }
+            }
+
+            Connections {
+                target: backend
+
+                function onLoginSucceeded(devices) {
+                    errorLabel.text = ""
+                    deviceDialog.devices = devices
+                    loginDialog.close()
+                    deviceDialog.open()
+                }
+
+                function onLoginFailed(message) {
+                    errorLabel.text = message
+                }
+            }
+        }
+    }
+
+    Dialog {
+        id: deviceDialog
+
+        title: "Select Neurosity Device"
+        modal: true
+        width: 350
+
+        property var devices: []
+
+        Column {
+            anchors.fill: parent
+            spacing: 10
+            padding: 15
+
+            ComboBox {
+                id: deviceCombo
+                width: 220
+                model: deviceDialog.devices
+            }
+
+            Button {
+                text: "Connect"
+
+                onClicked: {
+
+                    var state = backend.selectNeurosityDevice(deviceCombo.currentText)
+
+                    if (state === "online") {
+
+                        selectedHeadset = "Neurosity"
+                        backend.setBCISource("neurosity")
+
+                        deviceDialog.close()
+
+                    } else {
+
+                        deviceErrorLabel.text =
+                                "Device is offline.\n\n" +
+                                "Please connect your Crown using the Neurosity mobile app,\n" +
+                                "then click Connect again."
+
+                    }
+                }
+            }
+
+            Label {
+                id: deviceErrorLabel
+                color: "red"
+                text: ""
+                wrapMode: Text.WordWrap
+            }
+        }
     }
     
 
