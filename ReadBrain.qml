@@ -845,24 +845,22 @@ Rectangle {
                 text: "Connect"
 
                 onClicked: {
+                    backend.selectNeurosityDevice(deviceCombo.currentText)
+                }
 
-                    var state = backend.selectNeurosityDevice(deviceCombo.currentText)
+            }
 
-                    if (state === "online") {
+            Connections {
+                target: backend
 
-                        selectedHeadset = "Neurosity"
-                        backend.setBCISource("neurosity")
+                function onDeviceConnected() {
+                    selectedHeadset = "Neurosity"
+                    backend.setBCISource("neurosity")
+                    deviceDialog.close()
+                }
 
-                        deviceDialog.close()
-
-                    } else {
-
-                        deviceErrorLabel.text =
-                                "Device is offline.\n\n" +
-                                "Please connect your Crown using the Neurosity mobile app,\n" +
-                                "then click Connect again."
-
-                    }
+                function onDeviceOffline(message) {
+                    deviceErrorLabel.text = message
                 }
             }
 
