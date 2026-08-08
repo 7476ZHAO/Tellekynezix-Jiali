@@ -97,12 +97,14 @@ class NeurosityDataProcessor:
         return list(self.device_map.keys())
 
 
-    def select_device(self, device_name):
-
-        self.device_id = self.device_map[device_name]
-
+    def select_device(self, new_device_name):
+        new_device_id = self.device_map[new_device_name]
+        if new_device_id == self.device_id:
+            return self.get_device_state_once()
+        
+        self.device_id = new_device_id
+        self._client = None
         # print(self.get_device_state_once())
-
         return self.get_device_state_once()
 
     def _create_client(self):
