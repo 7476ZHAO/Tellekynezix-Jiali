@@ -1063,7 +1063,7 @@ class BrainwavesBackend(QObject):
     @Slot(str, str)
     def neurosityLogin(self, email, password):
         print(email)
-        print(password)
+        # print(password)
         self.ensure_neurosity_processor()
         ok = self.neurosity_processor.login(email, password)
 
@@ -1072,6 +1072,10 @@ class BrainwavesBackend(QObject):
             self.loginSucceeded.emit(devices)
         else:
             self.loginFailed.emit("Invalid email or password.")
+    
+    @Slot()
+    def neurosityLogout(self):
+        self.neurosity_processor.logout()
     
     @Slot(str)
     def selectNeurosityDevice(self, device):
