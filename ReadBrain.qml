@@ -804,6 +804,25 @@ Rectangle {
                 }
             }
 
+            Button {
+                text: "Sign Out"
+
+                onClicked: {
+                    backend.neurosityLogout()
+                    emailField.text = ""
+                    passwordField.text = ""
+
+                }
+            }
+
+            Button {
+                text: "Close"
+
+                onClicked: {
+                    loginDialog.close()
+                }
+            }
+
             Connections {
                 target: backend
 
@@ -848,6 +867,15 @@ Rectangle {
                     backend.selectNeurosityDevice(deviceCombo.currentText)
                 }
 
+            }
+
+            Button {
+                text: "Back"
+
+                onClicked: {
+                    deviceDialog.close()
+                    loginDialog.open()
+                }
             }
 
             Connections {
