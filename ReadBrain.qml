@@ -676,7 +676,7 @@ Rectangle {
                                 } else {
                                     loginDialog.open()
                                 }
-                                // selectedHeadset = "Neurosity"
+                                selectedHeadset = "Neurosity"
                                 // backend.setBCISource("neurosity")
                                 
                                 }
