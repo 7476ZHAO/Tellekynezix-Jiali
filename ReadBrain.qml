@@ -12,7 +12,7 @@ Rectangle {
     property string selectedModel: "Random Forest"
     property string currentFramework: "PyTorch"
     property string selectedHeadset: "OpenBCI"
-    property string neurosityStatus: "Offline"
+    property string neurosityStatus: "Signed Out"
     color: "#718399"
     Layout.fillWidth: true
     Layout.fillHeight: true
