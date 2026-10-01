@@ -1069,7 +1069,13 @@ class BrainwavesBackend(QObject):
 
         if ok:
             devices = self.neurosity_processor.get_devices()
-            self.loginSucceeded.emit(devices)
+            if not devices:
+                devices = ["No devices paired"]
+                self.loginSucceeded.emit(devices)
+                self.neurosityStatusChanged.emit("No Device")
+            else:
+                self.loginSucceeded.emit(devices)
+                self.neurosityStatusChanged.emit("offline")
         else:
             self.loginFailed.emit("Invalid email or password.")
     
