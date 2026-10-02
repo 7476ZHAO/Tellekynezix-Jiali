@@ -1073,6 +1073,7 @@ class BrainwavesBackend(QObject):
                 devices = ["No devices paired"]
                 self.loginSucceeded.emit(devices)
                 self.neurosityStatusChanged.emit("No Device")
+                return
             else:
                 self.loginSucceeded.emit(devices)
                 self.neurosityStatusChanged.emit("offline")
@@ -1088,7 +1089,7 @@ class BrainwavesBackend(QObject):
     def selectNeurosityDevice(self, device):
 
         state = self.neurosity_processor.select_device(device)
-        print("backend" + state)
+        # print("backend" + state)
 
         if state == "online":
             self.deviceConnected.emit()
